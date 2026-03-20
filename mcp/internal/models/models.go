@@ -21,8 +21,10 @@ type FileSnapshot struct {
 type PendingChange struct {
 	AgentID   string         `json:"agent_id"`
 	SessionID string         `json:"session_id,omitempty"`
+	TaskID    string         `json:"task_id,omitempty"`
 	Files     []FileSnapshot `json:"files"`
 	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 // VFSState is the full in-memory workspace state returned by get_vfs_state.
@@ -71,11 +73,16 @@ type Overlap struct {
 
 // FileRisk is a per-file risk summary returned by the backend.
 type FileRisk struct {
-	FilePath       string `json:"file_path"`
-	RiskScore      int    `json:"risk_score"`
-	StabilityScore int    `json:"stability_score"`
-	OverlapCount   int    `json:"overlap_count"`
-	Summary        string `json:"summary"`
+	FilePath             string   `json:"file_path"`
+	RiskScore            int      `json:"risk_score"`
+	StabilityScore       int      `json:"stability_score"`
+	OverlapCount         int      `json:"overlap_count"`
+	Contributors         []string `json:"contributors"`
+	ContributorsCount    int      `json:"contributors_count"`
+	PairwiseOverlapCount int      `json:"pairwise_overlap_count"`
+	MaxSeverity          *string  `json:"max_severity"`
+	IsHotspot            bool     `json:"is_hotspot"`
+	Summary              string   `json:"summary"`
 }
 
 // AnalyzeOverlapsResponse is the payload returned from POST /analyze/overlaps.

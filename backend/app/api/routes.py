@@ -32,9 +32,9 @@ async def analyze_overlaps(req: AnalyzeOverlapsRequest) -> AnalyzeOverlapsRespon
     Returns per-symbol overlaps and per-file risk assessments.
     """
     if not req.changesets:
-        raise HTTPException(status_code=422, detail="At least one changeset is required")
+        return AnalyzeOverlapsResponse(overlaps=[], file_risks=[])
 
     overlaps = detect_overlaps(req)
-    file_risks = compute_file_risks(overlaps)
+    file_risks = compute_file_risks(overlaps, all_changesets=req.changesets)
 
     return AnalyzeOverlapsResponse(overlaps=overlaps, file_risks=file_risks)

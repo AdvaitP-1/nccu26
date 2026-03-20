@@ -60,6 +60,11 @@ class FileRisk(BaseModel):
     risk_score: int = Field(ge=0, le=100)
     stability_score: int = Field(ge=0, le=100)
     overlap_count: int
+    contributors: list[str]
+    contributors_count: int = Field(ge=0)
+    pairwise_overlap_count: int = Field(ge=0)
+    max_severity: OverlapSeverity | None = None
+    is_hotspot: bool = False
     summary: str
 
 

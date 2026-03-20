@@ -58,24 +58,17 @@ func RequestMicroCommitTool(d Deps) ToolEntry {
 			}
 		}
 
-		// 3. Evaluate policy.
+		// 3. Evaluate policy — returns structured decision with all reasons.
 		decision := d.Policy.Evaluate(analysisResp)
 		if !decision.Allowed {
-			payload, _ := json.MarshalIndent(map[string]any{
-				"allowed": false,
-				"reason":  decision.Reason,
-			}, "", "  ")
+			payload, _ := json.MarshalIndent(decision, "", "  ")
 			return mcp.NewToolResultText(string(payload)), nil
 		}
 
 		// 4. Execute commit.
-		snapshots := make([]models.FileSnapshot, len(files))
-		for i, f := range files {
-			snapshots[i] = f
-		}
 		result := d.Commits.Commit(models.CommitRequest{
 			AgentID: agentID,
-			Files:   snapshots,
+			Files:   files,
 			Message: message,
 		})
 

@@ -19,8 +19,8 @@ import (
 
 // Manager is the public API for VFS operations.
 type Manager struct {
-	mu       sync.RWMutex
-	pending  map[string]*models.PendingChange // keyed by agent_id
+	mu      sync.RWMutex
+	pending map[string]*models.PendingChange // keyed by agent_id
 }
 
 // NewManager returns a ready-to-use VFS manager.
@@ -31,34 +31,41 @@ func NewManager() *Manager {
 }
 
 // Propose stores or replaces the pending file set for an agent.
-func (m *Manager) Propose(agentID, sessionID string, files []models.FileSnapshot) {
+func (m *Manager) Propose(agentID, sessionID, taskID string, files []models.FileSnapshot) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	now := time.Now().UTC()
 	m.pending[agentID] = &models.PendingChange{
 		AgentID:   agentID,
 		SessionID: sessionID,
+		TaskID:    taskID,
 		Files:     files,
-		CreatedAt: time.Now().UTC(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 }
 
 // AddFile appends a single file to an agent's pending set.
 // Creates the pending entry if it does not exist yet.
-func (m *Manager) AddFile(agentID, sessionID string, file models.FileSnapshot) {
+func (m *Manager) AddFile(agentID, sessionID, taskID string, file models.FileSnapshot) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	now := time.Now().UTC()
 	pc, ok := m.pending[agentID]
 	if !ok {
 		pc = &models.PendingChange{
 			AgentID:   agentID,
 			SessionID: sessionID,
-			CreatedAt: time.Now().UTC(),
+			TaskID:    taskID,
+			CreatedAt: now,
+			UpdatedAt: now,
 		}
 		m.pending[agentID] = pc
 	}
 	pc.Files = append(pc.Files, file)
+	pc.UpdatedAt = now
 }
 
 // State returns a snapshot of the entire VFS.
@@ -78,6 +85,13 @@ func (m *Manager) State() models.VFSState {
 		TotalFiles:     totalFiles,
 		TotalAgents:    len(m.pending),
 	}
+}
+
+// AgentCount returns the number of agents with pending changes.
+func (m *Manager) AgentCount() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return len(m.pending)
 }
 
 // ChangeSetsForAnalysis converts the current VFS into the shape expected

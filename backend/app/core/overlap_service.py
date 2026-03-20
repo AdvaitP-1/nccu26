@@ -4,7 +4,10 @@ The algorithm:
   1. Parse every file submitted in every changeset.
   2. Group parsed symbols by ``(file_path, symbol_name, symbol_kind)``.
   3. For each group touched by more than one agent, compare line ranges
-     to determine overlap severity.
+     pairwise across *all* agent combinations to determine overlap severity.
+
+This correctly handles N agents — ``itertools.combinations`` generates every
+unique pair regardless of how many agents are present.
 """
 
 from __future__ import annotations
@@ -25,8 +28,9 @@ from app.schemas import (
 
 logger = logging.getLogger(__name__)
 
-# Key: (file_path, symbol_name, symbol_kind)
 _SymbolKey = tuple[str, str, SymbolKind]
+
+ADJACENT_THRESHOLD = 3  # lines
 
 
 def detect_overlaps(request: AnalyzeOverlapsRequest) -> list[Overlap]:
@@ -36,7 +40,7 @@ def detect_overlaps(request: AnalyzeOverlapsRequest) -> list[Overlap]:
 
 
 # ---------------------------------------------------------------------------
-# Internal helpers
+# Parsing
 # ---------------------------------------------------------------------------
 
 
@@ -65,15 +69,27 @@ def _parse_file(fi: FileInput) -> list[Symbol]:
     if parser is None:
         logger.info("No parser for %s — skipping", fi.path)
         return []
-    return parser.parse(fi.content, fi.path)
+    try:
+        return parser.parse(fi.content, fi.path)
+    except Exception:
+        logger.warning("Unexpected parse failure for %s", fi.path, exc_info=True)
+        return []
+
+
+# ---------------------------------------------------------------------------
+# Overlap detection — works for any number of agents
+# ---------------------------------------------------------------------------
 
 
 def _find_overlaps(
     agent_symbols: dict[str, dict[_SymbolKey, list[Symbol]]],
 ) -> list[Overlap]:
-    """Compare every pair of agents that share a symbol key."""
+    """Compare every pair of agents that share a symbol key.
+
+    For N agents this produces C(N,2) pairs — correct by construction.
+    """
     overlaps: list[Overlap] = []
-    agent_ids = list(agent_symbols.keys())
+    agent_ids = sorted(agent_symbols.keys())
 
     for agent_a, agent_b in combinations(agent_ids, 2):
         syms_a = agent_symbols[agent_a]
@@ -84,8 +100,7 @@ def _find_overlaps(
             for sym_a in syms_a[key]:
                 for sym_b in syms_b[key]:
                     overlap = _compare_symbols(sym_a, sym_b, agent_a, agent_b)
-                    if overlap is not None:
-                        overlaps.append(overlap)
+                    overlaps.append(overlap)
 
     return overlaps
 
@@ -95,8 +110,7 @@ def _compare_symbols(
     sym_b: Symbol,
     agent_a: str,
     agent_b: str,
-) -> Overlap | None:
-    """Classify the overlap between two identically-keyed symbols."""
+) -> Overlap:
     severity, reason = _classify(sym_a, sym_b)
 
     return Overlap(
@@ -114,9 +128,6 @@ def _compare_symbols(
     )
 
 
-_ADJACENT_THRESHOLD = 3  # lines
-
-
 def _classify(a: Symbol, b: Symbol) -> tuple[OverlapSeverity, str]:
     """Determine severity from the line-range relationship of two symbols."""
     if a.overlaps_lines(b):
@@ -126,7 +137,7 @@ def _classify(a: Symbol, b: Symbol) -> tuple[OverlapSeverity, str]:
         )
 
     gap = min(abs(a.start_line - b.end_line), abs(b.start_line - a.end_line))
-    if gap <= _ADJACENT_THRESHOLD:
+    if gap <= ADJACENT_THRESHOLD:
         return (
             OverlapSeverity.HIGH,
             f"Both agents modify '{a.name}' with adjacent line ranges ({gap} lines apart)",
