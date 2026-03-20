@@ -47,7 +47,7 @@ func Run(cfg config.Config) error {
 		slog.Info("git executor not configured — state-tracking mode only")
 	}
 
-	gitSvc := service.NewGitService(store, engine, treeMgr, gitExec)
+	gitSvc := service.NewGitService(store, engine, treeMgr, gitExec, vfsMgr)
 
 	deps := tools.Deps{
 		VFS:        vfsMgr,

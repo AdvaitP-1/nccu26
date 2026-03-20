@@ -28,6 +28,7 @@ import (
 	"github.com/nccuhacks/nccu26/mcp/internal/gitcontrol"
 	"github.com/nccuhacks/nccu26/mcp/internal/models"
 	"github.com/nccuhacks/nccu26/mcp/internal/storage"
+	"github.com/nccuhacks/nccu26/mcp/internal/vfs"
 )
 
 // GitService provides Git state management and execution capabilities.
@@ -38,6 +39,7 @@ type GitService struct {
 	engine *diff.Engine
 	tree   *filetree.Manager
 	git    *gitcontrol.Executor
+	vfs    *vfs.Manager
 	logger *slog.Logger
 }
 
@@ -47,12 +49,14 @@ func NewGitService(
 	engine *diff.Engine,
 	tree *filetree.Manager,
 	git *gitcontrol.Executor,
+	vfsMgr *vfs.Manager,
 ) *GitService {
 	return &GitService{
 		store:  store,
 		engine: engine,
 		tree:   tree,
 		git:    git,
+		vfs:    vfsMgr,
 		logger: slog.Default().With("component", "git_service"),
 	}
 }
@@ -124,6 +128,7 @@ func (s *GitService) IngestPush(_ context.Context, req models.IngestPushRequest)
 	}
 
 	var nodeIDs []string
+	vfsFiles := make([]models.FileSnapshot, 0, len(req.Files))
 
 	for _, fc := range req.Files {
 		if fc.FilePath == "" {
@@ -143,10 +148,18 @@ func (s *GitService) IngestPush(_ context.Context, req models.IngestPushRequest)
 		}
 
 		nodeIDs = append(nodeIDs, node.NodeID)
+		vfsFiles = append(vfsFiles, models.FileSnapshot{
+			Path:     fc.FilePath,
+			Language: fc.Language,
+			Content:  fc.NewContent,
+		})
 	}
 
 	push.NodeIDs = nodeIDs
 	s.store.PutPushSet(push)
+	if s.vfs != nil {
+		s.vfs.Propose(vfsAgentID(req.BranchName, req.UserID), pushID, vfsFiles)
+	}
 
 	s.logger.Info("push ingested",
 		"push_id", pushID,
@@ -508,6 +521,9 @@ func (s *GitService) CreateGroupedCommit(ctx context.Context, req models.Grouped
 	push.Status = models.PushStatusCommitted
 	push.UpdatedAt = now
 	s.store.UpdatePushSet(push)
+	if s.vfs != nil {
+		s.vfs.Clear(vfsAgentID(branch.GitBranchName, push.UserID))
+	}
 
 	s.logger.Info("grouped commit created",
 		"commit_id", commitID,
@@ -611,4 +627,8 @@ func derefNodes(ptrs []*models.FileNode) []models.FileNode {
 		out[i] = *p
 	}
 	return out
+}
+
+func vfsAgentID(branchName, userID string) string {
+	return "git:" + branchName + ":" + userID
 }

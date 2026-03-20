@@ -8,13 +8,21 @@ import (
 	"github.com/nccuhacks/nccu26/mcp/internal/filetree"
 	"github.com/nccuhacks/nccu26/mcp/internal/models"
 	"github.com/nccuhacks/nccu26/mcp/internal/storage"
+	"github.com/nccuhacks/nccu26/mcp/internal/vfs"
 )
 
 func newTestService() *GitService {
 	store := storage.New()
 	engine := diff.NewEngine()
 	tree := filetree.NewManager(store, engine)
-	return NewGitService(store, engine, tree, nil)
+	return NewGitService(store, engine, tree, nil, nil)
+}
+
+func newTestServiceWithVFS(vfsMgr *vfs.Manager) *GitService {
+	store := storage.New()
+	engine := diff.NewEngine()
+	tree := filetree.NewManager(store, engine)
+	return NewGitService(store, engine, tree, nil, vfsMgr)
 }
 
 func TestIngestPush_SingleFile(t *testing.T) {
@@ -337,5 +345,54 @@ func TestHealth(t *testing.T) {
 	}
 	if status.Stats == nil {
 		t.Error("expected stats map")
+	}
+}
+
+func TestGitFlow_MirrorsAndClearsVFS(t *testing.T) {
+	vfsMgr := vfs.NewManager()
+	svc := newTestServiceWithVFS(vfsMgr)
+	ctx := context.Background()
+
+	pushResp, err := svc.IngestPush(ctx, models.IngestPushRequest{
+		BranchName: "feature/auth",
+		UserID:     "dev-A",
+		Files: []models.PushFileChange{
+			{FilePath: "auth.py", BaseContent: "base\n", NewContent: "changed-auth\n"},
+			{FilePath: "user.py", BaseContent: "base\n", NewContent: "changed-user\n"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("IngestPush: %v", err)
+	}
+
+	vfsState := vfsMgr.State()
+	if vfsState.TotalAgents != 1 {
+		t.Fatalf("VFS total agents = %d, want 1", vfsState.TotalAgents)
+	}
+	if vfsState.TotalFiles != 2 {
+		t.Fatalf("VFS total files = %d, want 2", vfsState.TotalFiles)
+	}
+
+	svc.ApplyMergeResult(ctx, models.ApplyMergeResultRequest{
+		BranchName: "feature/auth", FilePath: "auth.py", MergedContent: "final-auth\n",
+	})
+	svc.ApplyMergeResult(ctx, models.ApplyMergeResultRequest{
+		BranchName: "feature/auth", FilePath: "user.py", MergedContent: "final-user\n",
+	})
+
+	_, err = svc.CreateGroupedCommit(ctx, models.GroupedCommitRequest{
+		PushID:  pushResp.PushID,
+		Message: "test grouped commit",
+	})
+	if err != nil {
+		t.Fatalf("CreateGroupedCommit: %v", err)
+	}
+
+	vfsState = vfsMgr.State()
+	if vfsState.TotalAgents != 0 {
+		t.Fatalf("VFS total agents after commit = %d, want 0", vfsState.TotalAgents)
+	}
+	if vfsState.TotalFiles != 0 {
+		t.Fatalf("VFS total files after commit = %d, want 0", vfsState.TotalFiles)
 	}
 }
