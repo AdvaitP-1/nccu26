@@ -28,9 +28,12 @@ func main() {
 	cfg := config.Load()
 	slog.Info("configuration loaded",
 		"server_addr", cfg.ServerAddr,
+		"http_addr", cfg.HTTPAddr,
 		"backend_url", cfg.BackendBaseURL,
 		"risk_threshold", cfg.RiskThreshold,
 		"block_on_critical", cfg.BlockOnCritical,
+		"git_repo_path", cfg.GitRepoPath,
+		"git_remote", cfg.GitRemote,
 	)
 
 	if err := server.Run(cfg); err != nil {
