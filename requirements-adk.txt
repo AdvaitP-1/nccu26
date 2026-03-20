@@ -1,0 +1,3 @@
+# IBM WatsonX Orchestrate ADK layer dependencies
+ibm-watsonx-orchestrate
+requests>=2.31.0
