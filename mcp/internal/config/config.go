@@ -14,6 +14,10 @@ type Config struct {
 	// ServerAddr is the host:port the MCP server listens on.
 	ServerAddr string
 
+	// HTTPAddr is the host:port for the REST API server (git endpoints).
+	// Set to "" to disable the HTTP API.
+	HTTPAddr string
+
 	// BackendBaseURL is the root URL of the structural analysis backend
 	// (e.g. "http://localhost:8000").
 	BackendBaseURL string
@@ -28,16 +32,27 @@ type Config struct {
 	// BlockOnCritical, when true, rejects any micro-commit whose overlap
 	// set contains at least one "critical" severity entry.
 	BlockOnCritical bool
+
+	// GitRepoPath is the local filesystem path to the Git repository
+	// that the orchestration layer operates on.  If empty, git operations
+	// work in state-tracking mode only (no real commits/pushes).
+	GitRepoPath string
+
+	// GitRemote is the name of the Git remote to push to (default "origin").
+	GitRemote string
 }
 
 // Load reads configuration from the environment.
 func Load() Config {
 	return Config{
 		ServerAddr:      envStr("MCP_SERVER_ADDR", ":9090"),
+		HTTPAddr:        envStr("MCP_HTTP_ADDR", ":9091"),
 		BackendBaseURL:  envStr("MCP_BACKEND_URL", "http://localhost:8000"),
 		BackendTimeout:  envDuration("MCP_BACKEND_TIMEOUT", 10*time.Second),
 		RiskThreshold:   envInt("MCP_RISK_THRESHOLD", 70),
 		BlockOnCritical: envBool("MCP_BLOCK_ON_CRITICAL", true),
+		GitRepoPath:     envStr("MCP_GIT_REPO_PATH", ""),
+		GitRemote:       envStr("MCP_GIT_REMOTE", "origin"),
 	}
 }
 

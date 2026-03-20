@@ -1,8 +1,8 @@
 // Package tools defines MCP tool handlers and their registration.
 //
-// Each tool lives in its own file for readability.  The Registry function
-// wires them all together with the shared dependencies (VFS, analysis
-// client, policy, commits) and returns a slice ready for server.AddTool().
+// Each tool lives in its own file for readability.  The All function
+// wires them together with shared dependencies and returns a slice
+// ready for server.AddTool().
 package tools
 
 import (
@@ -11,6 +11,7 @@ import (
 	"github.com/nccuhacks/nccu26/mcp/internal/analysisclient"
 	"github.com/nccuhacks/nccu26/mcp/internal/commits"
 	"github.com/nccuhacks/nccu26/mcp/internal/policy"
+	svc "github.com/nccuhacks/nccu26/mcp/internal/service"
 	"github.com/nccuhacks/nccu26/mcp/internal/vfs"
 )
 
@@ -26,13 +27,30 @@ type Deps struct {
 	Analysis   *analysisclient.Client
 	Policy     *policy.Evaluator
 	Commits    *commits.Coordinator
+	GitService *svc.GitService
 }
 
 // All returns every MCP tool the server should expose.
 func All(d Deps) []ToolEntry {
-	return []ToolEntry{
+	entries := []ToolEntry{
 		GetVFSStateTool(d),
 		IdentifyOverlapsTool(d),
 		RequestMicroCommitTool(d),
 	}
+
+	if d.GitService != nil {
+		entries = append(entries,
+			GitHealthTool(d),
+			RegisterPushTool(d),
+			GetBranchFileStateTool(d),
+			PrepareMergeContextTool(d),
+			ApplyMergeResultTool(d),
+			PrepareCommitTool(d),
+			CreateCommitTool(d),
+			PushCommitTool(d),
+			GetCommitStatusTool(d),
+		)
+	}
+
+	return entries
 }
