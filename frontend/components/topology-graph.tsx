@@ -11,19 +11,19 @@ interface Node {
 }
 
 const NODES: Node[] = [
-  { id: "input", label: "INPUT", x: 80, y: 180 },
-  { id: "preprocess", label: "PREPROCESS", x: 260, y: 80 },
-  { id: "model", label: "MODEL", x: 440, y: 180 },
-  { id: "validate", label: "VALIDATE", x: 260, y: 280 },
-  { id: "output", label: "OUTPUT", x: 620, y: 180 },
+  { id: "task", label: "TASK", x: 80, y: 180 },
+  { id: "decompose", label: "DECOMPOSE", x: 260, y: 80 },
+  { id: "agents", label: "AGENTS", x: 440, y: 180 },
+  { id: "analyze", label: "ANALYZE", x: 260, y: 280 },
+  { id: "merge", label: "MERGE", x: 620, y: 180 },
 ]
 
 const EDGES: [string, string][] = [
-  ["input", "preprocess"],
-  ["preprocess", "model"],
-  ["input", "validate"],
-  ["validate", "model"],
-  ["model", "output"],
+  ["task", "decompose"],
+  ["decompose", "agents"],
+  ["task", "analyze"],
+  ["analyze", "agents"],
+  ["agents", "merge"],
 ]
 
 function getNode(id: string) {
@@ -64,8 +64,7 @@ export function TopologyGraph() {
 
   return (
     <div className="relative w-full border-2 border-foreground bg-background">
-      <svg viewBox="0 0 760 360" className="w-full h-auto" role="img" aria-label="AI system topology graph showing data flow from Input through Preprocess and Validate to Model and Output">
-        {/* Grid lines for blueprint feel */}
+      <svg viewBox="0 0 760 360" className="w-full h-auto" role="img" aria-label="Agent orchestration topology graph showing data flow from Task through Decompose and Analyze to Agents and Merge">
         {Array.from({ length: 32 }).map((_, i) => (
           <line
             key={`vline-${i}`}
@@ -89,7 +88,6 @@ export function TopologyGraph() {
           />
         ))}
 
-        {/* Connection Lines */}
         {EDGES.map(([fromId, toId], i) => {
           const from = getNode(fromId)
           const to = getNode(toId)
@@ -110,7 +108,6 @@ export function TopologyGraph() {
           )
         })}
 
-        {/* Data Packets */}
         {EDGES.map(([fromId, toId], i) => {
           const from = getNode(fromId)
           const to = getNode(toId)
@@ -126,7 +123,6 @@ export function TopologyGraph() {
           )
         })}
 
-        {/* Nodes */}
         {NODES.map((node, i) => (
           <motion.g
             key={node.id}
@@ -155,7 +151,6 @@ export function TopologyGraph() {
             >
               {node.label}
             </text>
-            {/* Status indicator */}
             <circle cx={node.x + 110} cy={node.y + 10} r={3} fill="#ea580c">
               <animate
                 attributeName="opacity"

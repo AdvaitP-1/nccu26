@@ -158,7 +158,7 @@ func (s *GitService) IngestPush(_ context.Context, req models.IngestPushRequest)
 	push.NodeIDs = nodeIDs
 	s.store.PutPushSet(push)
 	if s.vfs != nil {
-		s.vfs.Propose(vfsAgentID(req.BranchName, req.UserID), pushID, vfsFiles)
+		s.vfs.Propose(vfsAgentID(req.BranchName, req.UserID), pushID, "", vfsFiles)
 	}
 
 	s.logger.Info("push ingested",

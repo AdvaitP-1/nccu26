@@ -4,6 +4,7 @@ import { Navbar } from "@/components/navbar"
 import { useMemo, useState } from "react"
 import { Graph } from "@/components/graph/Graph"
 import { SidePanel } from "@/components/graph/SidePanel"
+import { BackendPanel } from "@/components/backend-panel"
 import { addNode, removeNode, type Node } from "@/components/graph/graphHelpers"
 
 interface GraphState {
@@ -120,6 +121,7 @@ export function GraphApp() {
           </aside>
         ) : null}
       </main>
+      <BackendPanel />
     </div>
   )
 }

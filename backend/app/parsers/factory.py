@@ -6,6 +6,7 @@ import logging
 from pathlib import PurePosixPath
 
 from app.parsers.base import BaseParser
+from app.parsers.go_parser import GoParser
 from app.parsers.python_parser import PythonParser
 from app.parsers.ts_parser import TypeScriptParser
 
@@ -14,9 +15,10 @@ logger = logging.getLogger(__name__)
 # Singletons — parsers are stateless so one instance per language is enough.
 _PYTHON = PythonParser()
 _TYPESCRIPT = TypeScriptParser()
+_GO = GoParser()
 
 _EXTENSION_MAP: dict[str, BaseParser] = {}
-for _parser in (_PYTHON, _TYPESCRIPT):
+for _parser in (_PYTHON, _TYPESCRIPT, _GO):
     for _ext in _parser.supported_extensions():
         _EXTENSION_MAP[_ext] = _parser
 

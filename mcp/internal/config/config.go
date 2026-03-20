@@ -40,6 +40,12 @@ type Config struct {
 
 	// GitRemote is the name of the Git remote to push to (default "origin").
 	GitRemote string
+
+	// PublicURL is the externally reachable base URL for the MCP SSE server.
+	// When set (e.g. to an ngrok URL), the SSE endpoint event will advertise
+	// this origin so that remote clients can POST messages back correctly.
+	// Defaults to "http://localhost" + ServerAddr.
+	PublicURL string
 }
 
 // Load reads configuration from the environment.
@@ -53,6 +59,7 @@ func Load() Config {
 		BlockOnCritical: envBool("MCP_BLOCK_ON_CRITICAL", true),
 		GitRepoPath:     envStr("MCP_GIT_REPO_PATH", ""),
 		GitRemote:       envStr("MCP_GIT_REMOTE", "origin"),
+		PublicURL:        envStr("MCP_PUBLIC_URL", ""),
 	}
 }
 

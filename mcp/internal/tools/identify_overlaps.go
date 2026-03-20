@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -22,7 +23,7 @@ func IdentifyOverlapsTool(d Deps) ToolEntry {
 		),
 	)
 
-	handler := func(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	handler := func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		changesets := d.VFS.ChangeSetsForAnalysis()
 		if len(changesets) < 2 {
 			return mcp.NewToolResultText(
@@ -30,7 +31,12 @@ func IdentifyOverlapsTool(d Deps) ToolEntry {
 			), nil
 		}
 
-		resp, err := d.Analysis.AnalyzeOverlaps(ctx, changesets)
+		// Use a detached context — the SSE transport may cancel the
+		// original request context before the backend responds.
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		resp, err := d.Analysis.AnalyzeOverlaps(bgCtx, changesets)
 		if err != nil {
 			slog.Error("backend analysis failed", "error", err)
 			return mcp.NewToolResultError("backend analysis failed: " + err.Error()), nil

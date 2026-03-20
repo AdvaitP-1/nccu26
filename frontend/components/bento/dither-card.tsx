@@ -60,7 +60,7 @@ export function DitherCard() {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
         <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
-          neural_scan.dither
+          overlap_heatmap.dither
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">320x240</span>
       </div>
@@ -69,7 +69,7 @@ export function DitherCard() {
           ref={canvasRef}
           className="w-full h-auto"
           style={{ imageRendering: "pixelated" }}
-          aria-label="Dithered neural network visualization"
+          aria-label="Dithered overlap heatmap visualization"
           role="img"
         />
       </div>

@@ -3,20 +3,20 @@
 import { useEffect, useState } from "react"
 
 const LOG_LINES = [
-  "> Initializing AI pipeline...",
-  "> Loading model weights: 2.4GB",
-  "> Connecting to data stream...",
-  "> Analyzing codebase...",
-  "> Running inference: batch_01",
-  "> Optimization pass: 1/3",
-  "> Optimization pass: 2/3",
-  "> Optimization pass: 3/3",
-  "> 98% Optimized",
-  "> Deploying to edge nodes...",
-  "> Status: OPERATIONAL",
-  "> Latency: 12ms p99",
-  "> Throughput: 14.2k req/s",
-  "> Memory: 847MB / 2048MB",
+  "> Initializing Orca orchestrator...",
+  "> Spawning agent: arch-planner-01",
+  "> Spawning agent: coder-alpha",
+  "> Spawning agent: coder-beta",
+  "> Task tree: 12 nodes decomposed",
+  "> VFS: tracking 47 pending files",
+  "> Overlap scan: analyzing changesets...",
+  "> WARNING: 3 structural overlaps detected",
+  "> Risk score: auth/middleware.ts → 0.82",
+  "> Resolving conflicts via merge protocol",
+  "> Micro-commit: agent-alpha pushed",
+  "> Micro-commit: agent-beta pushed",
+  "> All conflicts resolved. Merging...",
+  "> Status: MERGE COMPLETE",
   "> --------- CYCLE COMPLETE ---------",
 ]
 
@@ -37,7 +37,6 @@ export function TerminalCard() {
       })
     }, 600)
 
-    // Add first line
     setLines([LOG_LINES[0]])
 
     return () => clearInterval(interval)
@@ -50,7 +49,7 @@ export function TerminalCard() {
         <span className="h-2 w-2 bg-foreground" />
         <span className="h-2 w-2 border border-foreground" />
         <span className="ml-auto text-[10px] tracking-widest text-muted-foreground uppercase">
-          terminal.sys
+          orchestrator.sys
         </span>
       </div>
       <div className="flex-1 bg-foreground p-4 overflow-hidden">

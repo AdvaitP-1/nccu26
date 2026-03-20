@@ -3,8 +3,8 @@
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 
-const LEFT_LABELS = ["Train", "Package", "Version"]
-const RIGHT_LABELS = ["Route", "Deploy", "Observe"]
+const LEFT_LABELS = ["Decompose", "Analyze", "Track"]
+const RIGHT_LABELS = ["Detect", "Merge", "Ship"]
 
 function PillLabel({
   label,
@@ -69,9 +69,8 @@ export function WorkflowDiagram() {
         viewBox="0 0 800 200"
         className="w-full h-auto"
         role="img"
-        aria-label="Workflow diagram showing connected deployment stages: Train, Package, Version, Route, Deploy, Observe"
+        aria-label="Workflow diagram showing connected orchestration stages: Decompose, Analyze, Track, Detect, Merge, Ship"
       >
-        {/* Left lines from center to left labels */}
         {LEFT_LABELS.map((_, i) => {
           const pillX = 60
           const pillY = 30 + i * 60
@@ -91,7 +90,6 @@ export function WorkflowDiagram() {
           )
         })}
 
-        {/* Right lines from center to right labels */}
         {RIGHT_LABELS.map((_, i) => {
           const pillX = 660
           const pillY = 30 + i * 60
@@ -111,7 +109,6 @@ export function WorkflowDiagram() {
           )
         })}
 
-        {/* Data packets flowing along lines */}
         {LEFT_LABELS.map((_, i) => {
           const pillX = 60
           const pillY = 30 + i * 60
@@ -160,7 +157,6 @@ export function WorkflowDiagram() {
           )
         })}
 
-        {/* Left pill labels */}
         {LEFT_LABELS.map((label, i) => (
           <PillLabel
             key={`left-${label}`}
@@ -171,7 +167,6 @@ export function WorkflowDiagram() {
           />
         ))}
 
-        {/* Right pill labels */}
         {RIGHT_LABELS.map((label, i) => (
           <PillLabel
             key={`right-${label}`}
@@ -182,7 +177,6 @@ export function WorkflowDiagram() {
           />
         ))}
 
-        {/* Center logo square */}
         <motion.g
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -197,12 +191,10 @@ export function WorkflowDiagram() {
             stroke="hsl(var(--border))"
             strokeWidth={1.5}
           />
-          {/* Abstract cross/flower logo shape */}
           <line x1={centerX} y1={centerY - 18} x2={centerX} y2={centerY + 18} stroke="hsl(var(--foreground))" strokeWidth={3} />
           <line x1={centerX - 18} y1={centerY} x2={centerX + 18} y2={centerY} stroke="hsl(var(--foreground))" strokeWidth={3} />
           <line x1={centerX - 12} y1={centerY - 12} x2={centerX + 12} y2={centerY + 12} stroke="hsl(var(--foreground))" strokeWidth={2} />
           <line x1={centerX + 12} y1={centerY - 12} x2={centerX - 12} y2={centerY + 12} stroke="hsl(var(--foreground))" strokeWidth={2} />
-          {/* Pulsing ring */}
           <circle cx={centerX} cy={centerY} r={30} fill="none" stroke="#ea580c" strokeWidth={1}>
             <animate
               attributeName="r"

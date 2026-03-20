@@ -11,10 +11,12 @@ import (
 	"net/http"
 
 	mcpserver "github.com/mark3labs/mcp-go/server"
+	"github.com/nccuhacks/nccu26/mcp/internal/agents"
 	"github.com/nccuhacks/nccu26/mcp/internal/analysisclient"
 	"github.com/nccuhacks/nccu26/mcp/internal/commits"
 	"github.com/nccuhacks/nccu26/mcp/internal/config"
 	"github.com/nccuhacks/nccu26/mcp/internal/diff"
+	"github.com/nccuhacks/nccu26/mcp/internal/events"
 	"github.com/nccuhacks/nccu26/mcp/internal/filetree"
 	"github.com/nccuhacks/nccu26/mcp/internal/gitcontrol"
 	"github.com/nccuhacks/nccu26/mcp/internal/httpapi"
@@ -33,6 +35,8 @@ func Run(cfg config.Config) error {
 	analysisCli := analysisclient.New(cfg.BackendBaseURL, cfg.BackendTimeout)
 	policyEval := policy.NewEvaluator(cfg.RiskThreshold, cfg.BlockOnCritical)
 	commitCoord := commits.NewCoordinator()
+	agentReg := agents.NewRegistry()
+	eventBus := events.NewBus()
 
 	// -- Git state/execution dependencies --
 	store := storage.New()
@@ -73,11 +77,14 @@ func Run(cfg config.Config) error {
 
 	slog.Info("registered MCP tools", "tools", toolNames)
 
-	// -- HTTP API server (git endpoints) --
+	// -- HTTP API server (git + dashboard endpoints) --
 	if cfg.HTTPAddr != "" {
 		mux := http.NewServeMux()
 		handler := httpapi.NewHandler(gitSvc)
 		handler.RegisterRoutes(mux)
+
+		dashHandler := httpapi.NewDashboardHandler(vfsMgr, analysisCli, policyEval, commitCoord, gitSvc, agentReg, eventBus)
+		dashHandler.RegisterRoutes(mux)
 
 		go func() {
 			slog.Info("starting HTTP API server", "addr", cfg.HTTPAddr)
@@ -88,7 +95,10 @@ func Run(cfg config.Config) error {
 	}
 
 	// -- SSE Transport --
-	baseURL := "http://localhost" + cfg.ServerAddr
+	baseURL := cfg.PublicURL
+	if baseURL == "" {
+		baseURL = "http://localhost" + cfg.ServerAddr
+	}
 	sse := mcpserver.NewSSEServer(mcpSrv,
 		mcpserver.WithBaseURL(baseURL),
 	)

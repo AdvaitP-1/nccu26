@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -51,7 +52,9 @@ func RequestMicroCommitTool(d Deps) ToolEntry {
 
 		var analysisResp *models.AnalyzeOverlapsResponse
 		if len(changesets) >= 2 {
-			analysisResp, err = d.Analysis.AnalyzeOverlaps(ctx, changesets)
+			bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			analysisResp, err = d.Analysis.AnalyzeOverlaps(bgCtx, changesets)
 			if err != nil {
 				slog.Error("analysis failed during micro-commit", "error", err)
 				return mcp.NewToolResultError("analysis failed: " + err.Error()), nil

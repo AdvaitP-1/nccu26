@@ -1,38 +1,234 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { useEffect, useState, useRef } from "react"
+import { motion, useInView } from "framer-motion"
+import Image from "next/image"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
+function ScrambleText({ text, className }: { text: string; className?: string }) {
+  const [display, setDisplay] = useState(text)
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-50px" })
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./:"
+
+  useEffect(() => {
+    if (!inView) return
+    let iteration = 0
+    const interval = setInterval(() => {
+      setDisplay(
+        text
+          .split("")
+          .map((char, i) => {
+            if (char === " ") return " "
+            if (i < iteration) return text[i]
+            return chars[Math.floor(Math.random() * chars.length)]
+          })
+          .join("")
+      )
+      iteration += 0.5
+      if (iteration >= text.length) {
+        setDisplay(text)
+        clearInterval(interval)
+      }
+    }, 30)
+    return () => clearInterval(interval)
+  }, [inView, text])
+
+  return (
+    <span ref={ref} className={className}>
+      {display}
+    </span>
+  )
+}
+
+function BlinkDot() {
+  return <span className="inline-block h-2 w-2 bg-[#ea580c] animate-blink" />
+}
+
+function UptimeCounter() {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const base = 31536000 + Math.floor(Math.random() * 1000000)
+    setSeconds(base)
+    const interval = setInterval(() => setSeconds((s) => s + 1), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const format = (n: number) => {
+    const d = Math.floor(n / 86400)
+    const h = Math.floor((n % 86400) / 3600)
+    const m = Math.floor((n % 3600) / 60)
+    const s = n % 60
+    return `${d}d ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`
+  }
+
+  return (
+    <span className="font-mono text-[#ea580c]" style={{ fontVariantNumeric: "tabular-nums" }}>
+      {format(seconds)}
+    </span>
+  )
+}
+
+const STATS = [
+  { label: "AGENTS_ORCHESTRATED", value: "240+" },
+  { label: "OVERLAPS_CAUGHT", value: "18.4K" },
+  { label: "FILES_TRACKED", value: "2.1M" },
+  { label: "AVG_RISK_SCORE", value: "0.12" },
+]
+
+function StatBlock({ label, value, index }: { label: string; value: string; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, margin: "-30px" }}
+      transition={{ delay: 0.15 + index * 0.08, duration: 0.5, ease }}
+      className="flex flex-col gap-1 border-2 border-foreground px-4 py-3"
+    >
+      <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+        {label}
+      </span>
+      <span className="text-xl lg:text-2xl font-mono font-bold tracking-tight">
+        <ScrambleText text={value} />
+      </span>
+    </motion.div>
+  )
+}
+
 export function AboutSection() {
   return (
-    <section className="w-full px-6 py-16 lg:px-12">
+    <section id="about" className="w-full px-6 py-20 lg:px-12 scroll-mt-20">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.6, ease }}
-        className="mx-auto flex max-w-5xl flex-col gap-8"
+        transition={{ duration: 0.5, ease }}
+        className="flex items-center gap-4 mb-8"
       >
-        <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-[0.3em] text-blue-200/80">
-          The Why
-          <span className="h-px flex-1 bg-blue-400/40" />
-        </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-blue-400/30 bg-blue-950/70 p-6">
-            <h3 className="text-sm font-semibold text-blue-50">The Problem</h3>
-            <p className="mt-3 text-sm leading-relaxed text-blue-200/80">
-              Single-prompt AI tools lose context, hallucinate on large codebases, and can't manage complex workflows autonomously.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-blue-400/30 bg-blue-950/60 p-6">
-            <h3 className="text-sm font-semibold text-blue-50">The Solution: An Orchestration Layer</h3>
-            <p className="mt-3 text-sm leading-relaxed text-blue-200/80">
-              By breaking tasks down into a "Spec-First" workflow, our system ensures that every agent (Planner, Coder, Reviewer) stays aligned with the project's architectural requirements.
-            </p>
-          </div>
-        </div>
+        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+          {"// SECTION: ABOUT_ORCA"}
+        </span>
+        <div className="flex-1 border-t border-border" />
+        <BlinkDot />
+        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+          005
+        </span>
       </motion.div>
+
+      <div className="flex flex-col lg:flex-row gap-0 border-2 border-foreground">
+        <motion.div
+          initial={{ opacity: 0, x: -30, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, ease }}
+          className="relative w-full lg:w-1/2 min-h-[300px] lg:min-h-[500px] border-b-2 lg:border-b-0 lg:border-r-2 border-foreground overflow-hidden bg-foreground"
+        >
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-foreground/80 backdrop-blur-sm">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-background/60 font-mono">
+              RENDER: agent_topology.obj
+            </span>
+            <span className="text-[10px] tracking-[0.2em] uppercase text-[#ea580c] font-mono">
+              LIVE
+            </span>
+          </div>
+
+          <Image
+            src="/images/about-isometric.jpg"
+            alt="Isometric view of multi-agent orchestration infrastructure"
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority
+          />
+
+          <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-foreground/80 backdrop-blur-sm">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-background/40 font-mono">
+              {"CAM: -45deg / ISO"}
+            </span>
+            <span className="text-[10px] tracking-[0.2em] uppercase text-background/40 font-mono">
+              {"RES: 2048x2048"}
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, delay: 0.1, ease }}
+          className="flex flex-col w-full lg:w-1/2"
+        >
+          <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+              MANIFEST.md
+            </span>
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+              v1.0.0
+            </span>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-between px-5 py-6 lg:py-8">
+            <div className="flex flex-col gap-6">
+              <motion.h2
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.5, delay: 0.2, ease }}
+                className="text-2xl lg:text-3xl font-mono font-bold tracking-tight uppercase text-balance"
+              >
+                Orchestration built for
+                <br />
+                <span className="text-[#ea580c]">multi-agent code</span>
+              </motion.h2>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ delay: 0.3, duration: 0.5, ease }}
+                className="flex flex-col gap-4"
+              >
+                <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
+                  When multiple AI agents write code on the same codebase
+                  simultaneously, conflicts are inevitable. Orca AI sits between
+                  your agents and your repository, detecting structural overlaps
+                  in real-time and coordinating merges before conflicts reach
+                  your main branch.
+                </p>
+                <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
+                  Built on a virtual file system that tracks every pending
+                  change across every agent. Task tree decomposition breaks
+                  complex features into isolated units. The risk engine scores
+                  every file touch. No conflicts slip through.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scaleX: 0.8 }}
+                whileInView={{ opacity: 1, scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.5, ease }}
+                style={{ transformOrigin: "left" }}
+                className="flex items-center gap-3 py-3 border-t-2 border-b-2 border-foreground"
+              >
+                <span className="h-1.5 w-1.5 bg-[#ea580c]" />
+                <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+                  UPTIME:
+                </span>
+                <UptimeCounter />
+              </motion.div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-0 mt-6">
+              {STATS.map((stat, i) => (
+                <StatBlock key={stat.label} {...stat} index={i} />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </section>
   )
 }

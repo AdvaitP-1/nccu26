@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react"
 
-const REGIONS = [
-  { name: "US-EAST-1", status: "ONLINE", latency: "3.8ms" },
-  { name: "EU-WEST-2", status: "ONLINE", latency: "4.1ms" },
-  { name: "AP-SOUTH-1", status: "ONLINE", latency: "4.6ms" },
-  { name: "US-WEST-2", status: "ONLINE", latency: "4.2ms" },
+const AGENTS = [
+  { name: "ARCH-PLANNER", status: "ACTIVE", tasks: "12/12" },
+  { name: "CODER-ALPHA", status: "ACTIVE", tasks: "8/10" },
+  { name: "CODER-BETA", status: "ACTIVE", tasks: "6/10" },
+  { name: "REVIEWER-01", status: "IDLE", tasks: "0/0" },
 ]
 
 export function StatusCard() {
@@ -23,47 +23,45 @@ export function StatusCard() {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
         <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
-          edge_nodes.status
+          agent_pool.status
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
           {`TICK:${String(tick).padStart(4, "0")}`}
         </span>
       </div>
       <div className="flex-1 flex flex-col p-4 gap-0">
-        {/* Table header */}
         <div className="grid grid-cols-3 gap-2 border-b border-border pb-2 mb-2">
-          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Region</span>
+          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Agent</span>
           <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Status</span>
-          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground text-right">Latency</span>
+          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground text-right">Tasks</span>
         </div>
-        {REGIONS.map((region) => (
+        {AGENTS.map((agent) => (
           <div
-            key={region.name}
+            key={agent.name}
             className="grid grid-cols-3 gap-2 py-2 border-b border-border last:border-none"
           >
-            <span className="text-xs font-mono text-foreground">{region.name}</span>
+            <span className="text-xs font-mono text-foreground">{agent.name}</span>
             <div className="flex items-center gap-2">
               <span
                 className="h-1.5 w-1.5"
                 style={{
-                  backgroundColor: region.status === "ONLINE" ? "#ea580c" : "hsl(var(--muted-foreground))",
+                  backgroundColor: agent.status === "ACTIVE" ? "#ea580c" : "hsl(var(--muted-foreground))",
                 }}
               />
-              <span className="text-xs font-mono text-muted-foreground">{region.status}</span>
+              <span className="text-xs font-mono text-muted-foreground">{agent.status}</span>
             </div>
-            <span className="text-xs font-mono text-foreground text-right">{region.latency}</span>
+            <span className="text-xs font-mono text-foreground text-right">{agent.tasks}</span>
           </div>
         ))}
-        {/* Throughput bar */}
         <div className="mt-auto pt-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
-              Global Throughput
+              Merge Success Rate
             </span>
-            <span className="text-[9px] font-mono text-foreground">87%</span>
+            <span className="text-[9px] font-mono text-foreground">99%</span>
           </div>
           <div className="h-2 w-full border border-foreground">
-            <div className="h-full bg-foreground" style={{ width: "87%" }} />
+            <div className="h-full bg-foreground" style={{ width: "99%" }} />
           </div>
         </div>
       </div>
