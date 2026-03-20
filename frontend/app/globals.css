@@ -59,11 +59,11 @@
 
 /* Dot Grid Background */
 .dot-grid-bg {
-  background-image: radial-gradient(circle, #c4c2b8 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.35) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 .dark .dot-grid-bg {
-  background-image: radial-gradient(circle, hsl(0 0% 20%) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.35) 1px, transparent 1px);
 }
 
 /* Glitch Keyframes */

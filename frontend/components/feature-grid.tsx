@@ -1,82 +1,53 @@
 "use client"
 
-import { TerminalCard } from "@/components/bento/terminal-card"
-import { DitherCard } from "@/components/bento/dither-card"
-import { MetricsCard } from "@/components/bento/metrics-card"
-import { StatusCard } from "@/components/bento/status-card"
 import { motion } from "framer-motion"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.6, ease },
-  }),
-}
+const FEATURES = [
+  {
+    title: "Spec-Driven Development",
+    body: "Explain that the workflow starts with a markdown spec that governs all agent behavior.",
+  },
+  {
+    title: "Autonomous Multi-Agent Swarms",
+    body: "Describe specialized agents (Coder, Tester, Architect) working in parallel.",
+  },
+  {
+    title: "Intelligent Context Management",
+    body: "Explain how the system handles long-term memory via context compaction.",
+  },
+]
 
 export function FeatureGrid() {
   return (
-    <section className="w-full px-6 py-20 lg:px-12">
-      {/* Section label */}
+    <section className="w-full px-6 py-16 lg:px-12">
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.5, ease }}
-        className="flex items-center gap-4 mb-8"
+        transition={{ duration: 0.6, ease }}
+        className="mx-auto flex max-w-5xl flex-col gap-8"
       >
-        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-          {"// SECTION: RAW_DATA"}
-        </span>
-        <div className="flex-1 border-t border-border" />
-        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">004</span>
-      </motion.div>
-
-      {/* 2x2 Bento Grid */}
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-60px" }}
-        className="grid grid-cols-1 md:grid-cols-2 border-2 border-foreground"
-      >
-        {/* Terminal */}
-        <motion.div
-          custom={0}
-          variants={cardVariants}
-          className="border-b-2 md:border-b-0 md:border-r-2 border-foreground min-h-[280px]"
-        >
-          <TerminalCard />
-        </motion.div>
-
-        {/* Dither */}
-        <motion.div
-          custom={1}
-          variants={cardVariants}
-          className="border-b-2 md:border-b-0 border-foreground min-h-[280px]"
-        >
-          <DitherCard />
-        </motion.div>
-
-        {/* Metrics */}
-        <motion.div
-          custom={2}
-          variants={cardVariants}
-          className="border-t-2 md:border-r-2 border-foreground min-h-[280px]"
-        >
-          <MetricsCard />
-        </motion.div>
-
-        {/* Status */}
-        <motion.div
-          custom={3}
-          variants={cardVariants}
-          className="border-t-2 border-foreground min-h-[280px]"
-        >
-          <StatusCard />
-        </motion.div>
+        <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-[0.3em] text-blue-200/80">
+          Features
+          <span className="h-px flex-1 bg-blue-400/40" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {FEATURES.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ delay: index * 0.1, duration: 0.5, ease }}
+              className="rounded-2xl border border-blue-400/30 bg-blue-950/60 p-6 shadow-lg shadow-blue-950/40"
+            >
+              <h3 className="text-sm font-semibold text-blue-50">{feature.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-blue-200/80">{feature.body}</p>
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
     </section>
   )
